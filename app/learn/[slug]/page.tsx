@@ -1,3 +1,115 @@
-import Link from 'next/link'; import {notFound} from 'next/navigation'; import {ArrowLeft,ArrowRight,BookOpen,Check,Copy} from 'lucide-react'; import {lessons} from '@/lib/lessons'; import Actions from '@/components/Actions';
-export function generateStaticParams(){return lessons.map(x=>({slug:x.slug}))}
-export default async function Page({params}:{params:Promise<{slug:string}>}){const{slug}=await params;const i=lessons.findIndex(x=>x.slug===slug);if(i<0)return notFound();const l=lessons[i],prev=lessons[i-1],next=lessons[i+1];return <main className="lesson-shell"><header className="top lesson-top"><Link href="/" className="brand"><b>JS</b> Academy</Link><Link href="/" className="back"><ArrowRight size={16}/> المنهج</Link></header><div className="lesson-layout"><aside className="sidebar"><div className="side-title"><BookOpen size={18}/> المنهج</div>{['JavaScript','Async JavaScript','Node.js'].map(c=><div className="side-group" key={c}><b>{c}</b>{lessons.filter(x=>x.category===c).map(x=><Link className={x.slug===slug?'active':''} href={`/learn/${x.slug}`} key={x.slug}>{x.title}</Link>)}</div>)}</aside><article className="content"><div className="crumb">{l.category} · درس {i+1} من {lessons.length}</div><h1>{l.title}</h1><p className="lead">{l.summary}</p><Actions slug={slug}/><section><h2>الفكرة ببساطة</h2><p>{l.explanation}</p></section><section><h2>مثال عملي</h2><div className="code"><div className="code-head">JavaScript <Copy size={14}/></div><pre>{l.code}</pre></div><div className="output"><b>Output</b><code>{l.output}</code></div></section><section className="note"><h2>نقطة مهمة</h2><p>{l.tip}</p></section><section><h2>ماذا يجب أن تتذكر؟</h2>{l.takeaways.map(x=><div className="take" key={x}><Check size={16}/>{x}</div>)}</section><div className="lesson-nav">{prev?<Link href={`/learn/${prev.slug}`}><ArrowRight/><span>السابق<small>{prev.title}</small></span></Link>:<span/>}{next?<Link href={`/learn/${next.slug}`}><span>التالي<small>{next.title}</small></span><ArrowLeft/></Link>:<span/>}</div></article></div></main>}
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft, ArrowRight, BookOpen, Check, Copy } from "lucide-react";
+import { lessons } from "@/lib/lessons";
+import Actions from "@/components/Actions";
+export function generateStaticParams() {
+  return lessons.map((x) => ({ slug: x.slug }));
+}
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const i = lessons.findIndex((x) => x.slug === slug);
+  if (i < 0) return notFound();
+  const l = lessons[i],
+    prev = lessons[i - 1],
+    next = lessons[i + 1];
+  return (
+    <main className="lesson-shell">
+      <header className="top lesson-top">
+        <Link href="/" className="brand">
+          <b>JS</b> Academy
+        </Link>
+        <Link href="/" className="back">
+          <ArrowRight size={16} /> المنهج
+        </Link>
+      </header>
+      <div className="lesson-layout">
+        <aside className="sidebar">
+          <div className="side-title">
+            <BookOpen size={18} /> المنهج
+          </div>
+          {["JavaScript", "Async JavaScript", "Node.js"].map((c) => (
+            <div className="side-group" key={c}>
+              <b>{c}</b>
+              {lessons
+                .filter((x) => x.category === c)
+                .map((x) => (
+                  <Link
+                    className={x.slug === slug ? "active" : ""}
+                    href={`/learn/${x.slug}`}
+                    key={x.slug}
+                  >
+                    {x.title}
+                  </Link>
+                ))}
+            </div>
+          ))}
+        </aside>
+        <article className="content">
+          <div className="crumb">
+            {l.category} · درس {i + 1} من {lessons.length}
+          </div>
+          <h1>{l.title}</h1>
+          <p className="lead">{l.summary}</p>
+          <Actions slug={slug} />
+          <section>
+            <h2>الفكرة ببساطة</h2>
+            <p>{l.explanation}</p>
+          </section>
+          <section>
+            <h2>مثال عملي</h2>
+            <div className="code">
+              <div className="code-head">
+                JavaScript <Copy size={14} />
+              </div>
+              <pre>{l.code}</pre>
+            </div>
+            <div className="output">
+              <b>Output</b>
+              <code>{l.output}</code>
+            </div>
+          </section>
+          <section className="note">
+            <h2>نقطة مهمة</h2>
+            <p>{l.tip}</p>
+          </section>
+          <section>
+            <h2>ماذا يجب أن تتذكر؟</h2>
+            {l.takeaways.map((x) => (
+              <div className="take" key={x}>
+                <Check size={16} />
+                {x}
+              </div>
+            ))}
+          </section>
+          <div className="lesson-nav">
+            {prev ? (
+              <Link href={`/learn/${prev.slug}`}>
+                <ArrowRight />
+                <span>
+                  السابق<small>{prev.title}</small>
+                </span>
+              </Link>
+            ) : (
+              <span />
+            )}
+            {next ? (
+              <Link href={`/learn/${next.slug}`}>
+                <span>
+                  التالي<small>{next.title}</small>
+                </span>
+                <ArrowLeft />
+              </Link>
+            ) : (
+              <span />
+            )}
+          </div>
+        </article>
+      </div>
+    </main>
+  );
+}
