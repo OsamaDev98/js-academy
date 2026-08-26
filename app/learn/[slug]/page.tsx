@@ -1,115 +1,43 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookOpen, Check, Copy } from "lucide-react";
-import { lessons } from "@/lib/lessons";
-import Actions from "@/components/Actions";
-export function generateStaticParams() {
-  return lessons.map((x) => ({ slug: x.slug }));
-}
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const i = lessons.findIndex((x) => x.slug === slug);
-  if (i < 0) return notFound();
-  const l = lessons[i],
-    prev = lessons[i - 1],
-    next = lessons[i + 1];
-  return (
-    <main className="lesson-shell">
-      <header className="top lesson-top">
-        <Link href="/" className="brand">
-          <b>JS</b> Academy
-        </Link>
-        <Link href="/" className="back">
-          <ArrowRight size={16} /> المنهج
-        </Link>
-      </header>
-      <div className="lesson-layout">
-        <aside className="sidebar">
-          <div className="side-title">
-            <BookOpen size={18} /> المنهج
-          </div>
-          {["JavaScript", "Async JavaScript", "Node.js"].map((c) => (
-            <div className="side-group" key={c}>
-              <b>{c}</b>
-              {lessons
-                .filter((x) => x.category === c)
-                .map((x) => (
-                  <Link
-                    className={x.slug === slug ? "active" : ""}
-                    href={`/learn/${x.slug}`}
-                    key={x.slug}
-                  >
-                    {x.title}
-                  </Link>
-                ))}
-            </div>
-          ))}
-        </aside>
-        <article className="content">
-          <div className="crumb">
-            {l.category} · درس {i + 1} من {lessons.length}
-          </div>
-          <h1>{l.title}</h1>
-          <p className="lead">{l.summary}</p>
-          <Actions slug={slug} />
-          <section>
-            <h2>الفكرة ببساطة</h2>
-            <p>{l.explanation}</p>
-          </section>
-          <section>
-            <h2>مثال عملي</h2>
-            <div className="code">
-              <div className="code-head">
-                JavaScript <Copy size={14} />
-              </div>
-              <pre>{l.code}</pre>
-            </div>
-            <div className="output">
-              <b>Output</b>
-              <code>{l.output}</code>
-            </div>
-          </section>
-          <section className="note">
-            <h2>نقطة مهمة</h2>
-            <p>{l.tip}</p>
-          </section>
-          <section>
-            <h2>ماذا يجب أن تتذكر؟</h2>
-            {l.takeaways.map((x) => (
-              <div className="take" key={x}>
-                <Check size={16} />
-                {x}
-              </div>
-            ))}
-          </section>
-          <div className="lesson-nav">
-            {prev ? (
-              <Link href={`/learn/${prev.slug}`}>
-                <ArrowRight />
-                <span>
-                  السابق<small>{prev.title}</small>
-                </span>
-              </Link>
-            ) : (
-              <span />
-            )}
-            {next ? (
-              <Link href={`/learn/${next.slug}`}>
-                <span>
-                  التالي<small>{next.title}</small>
-                </span>
-                <ArrowLeft />
-              </Link>
-            ) : (
-              <span />
-            )}
-          </div>
-        </article>
-      </div>
-    </main>
-  );
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { ArrowLeft, ArrowRight, BookOpen, Check } from 'lucide-react';
+import { lessons } from '@/lib/lessons';
+import Actions from '@/components/Actions';
+
+type Detail={why:string;terms:[string,string][];syntax:string;lines:string[];real:string;internals:string;pitfalls:string[];exercise:string};
+const details:Record<string,Detail>={
+variables:{why:'المتغير هو اسم مرتبط بقيمة. الاختيار بين const وlet وvar يؤثر في إعادة الإسناد والنطاق والـhoisting، لذلك ليست مجرد ثلاث صيغ متشابهة.',terms:[['const','Binding لا يمكن إعادة إسناده إلى قيمة أخرى. لا يعني أن object أو array يصبح immutable.'],['let','Binding قابل لإعادة الإسناد وله Block Scope.'],['var','أسلوب قديم له Function Scope وHoisting مختلف.'],['assignment','عملية إسناد قيمة، مثل score = 15.']],syntax:'const name = value;\nlet score = 0;\nscore = 10;',lines:['const name = "Osama"; ← أنشأنا binding اسمه name بقيمة نصية.','let score = 10; ← أنشأنا binding يمكن تغيير قيمته.','score += 5; ← اختصار score = score + 5.','console.log(...) ← أرسلنا القيم إلى الطرفية.'],real:'في تطبيق ويب يمكن أن يكون const إعدادًا أو مرجعًا، بينما let مناسب لعداد أو قيمة تتغير أثناء loop.',internals:'let وconst يدخلان Temporal Dead Zone قبل سطر التعريف داخل النطاق. var يتم رفع تعريفه إلى أعلى نطاق الدالة وتكون قيمته undefined قبل الإسناد.',pitfalls:['استخدام let لكل شيء رغم ثبات القيمة.','اعتقاد أن const يجعل object immutable.','استخدام var داخل blocks وتوقع أن له Block Scope.'],exercise:'أنشئ const باسم product وlet باسم quantity، ثم احسب total. حاول تغيير product ولاحظ الخطأ.'},
+scope:{why:'Scope يحدد أين يمكن الوصول إلى الاسم. فهمه يمنع ReferenceError ويشرح لماذا تستطيع دالة رؤية متغير بينما لا تستطيع دالة أخرى.',terms:[['Global Scope','نطاق على مستوى البرنامج أو الوحدة بحسب البيئة.'],['Function Scope','متغير var داخل الدالة متاح داخلها.'],['Block Scope','النطاق الذي تصنعه { } مع let وconst.'],['Lexical Scope','النطاق تحدده أماكن كتابة الكود، وليس مكان استدعائه.']],syntax:'const outside = 1;\nif (true) {\n  const inside = 2;\n}\n// inside غير متاح هنا',lines:['const outside = 1; ← متاح في النطاق الحالي.','if (true) { ... } ← أنشأنا block.','const inside = 2; ← محصور داخل block.','بعد القوس لا يمكن الوصول إلى inside.'],real:'في React وNext.js ستستخدم scope باستمرار داخل components وcallbacks وevent handlers.',internals:'محرك JavaScript يبني Lexical Environments ويبحث عن الاسم في النطاق الحالي ثم الأب ثم الأعلى.',pitfalls:['تعريف متغير عام دون حاجة.','الخلط بين block وfunction scope.','توقع أن lexical scope يتغير حسب مكان الاستدعاء.'],exercise:'اكتب if يحتوي let message ثم حاول طباعته خارجه. جرّب var وقارن النتيجة.'},
+functions:{why:'الدالة وحدة تنفيذ قابلة لإعادة الاستخدام. في Node.js ستبني معظم منطق التطبيق على دوال صغيرة تتلقى مدخلات وتعيد نتائج.',terms:[['parameter','اسم يستقبل قيمة عند تعريف الدالة.'],['argument','القيمة الفعلية التي تمرر عند الاستدعاء.'],['return','إرجاع نتيجة وإنهاء تنفيذ الدالة.'],['callback','دالة تمرر إلى دالة أخرى.']],syntax:'function add(a, b) {\n  return a + b;\n}\nconst result = add(4, 6);',lines:['function add(a,b) ← تعريف دالة ومعاملين.','return a+b ← حساب وإرجاع النتيجة.','add(4,6) ← 4 و6 هما arguments.','result ← يستقبل القيمة 10.'],real:'الدوال مثل validateUser وcalculateTotal وHTTP handlers هي اللبنات الأساسية للتطبيق.',internals:'الدوال قيم من الدرجة الأولى؛ يمكن تخزينها وتمريرها وإرجاعها. عند الاستدعاء ينشأ execution context جديد للمعاملات والمتغيرات المحلية.',pitfalls:['دالة تقوم بعشر مهام.','نسيان return.','الخلط بين تعريف الدالة واستدعائها.'],exercise:'اكتب isAdult(age) تعيد true إذا كان العمر 18 أو أكثر واختبرها بثلاث قيم.'},
+'arrow-functions':{why:'Arrow Functions صياغة مختصرة، لكن أهم فرق هو طريقة التعامل مع this وarguments.',terms:[['=>','رمز صياغة Arrow Function.'],['implicit return','إرجاع مباشر عندما يكون الجسم expression.'],['this','في arrow لا يتم إنشاء this جديد؛ يؤخذ من السياق المعجمي.'],['callback','استخدام شائع داخل map وfilter.']],syntax:'const multiply = (a, b) => a * b;\nconst greet = name => `Hello ${name}`;',lines:['const multiply ← خزنا دالة في ثابت.','(a,b) ← المعاملات.','=> a*b ← جسم مختصر مع implicit return.','multiply(3,4) ← النتيجة 12.'],real:'ستراها كثيرًا في React وmap وevent handlers وNode callbacks.',internals:'Arrow Function لا تملك this وarguments الخاصة بها بالطريقة التقليدية؛ this يأتي من lexical environment.',pitfalls:['استخدام arrow عندما تحتاج this ديناميكيًا.','نسيان الأقواس مع أكثر من parameter.','استخدام {} وتوقع implicit return دون return.'],exercise:'حوّل function square(n){ return n*n } إلى arrow، ثم اكتب نسخة تستخدم implicit return.'},
+arrays:{why:'Array بنية مرتبة لتخزين مجموعة قيم. بيانات APIs كثيرًا ما تكون arrays، لذلك map وfilter وfind وreduce أساسية.',terms:[['index','موضع العنصر ويبدأ من 0.'],['map','ينشئ Array جديدة بتحويل كل عنصر.'],['filter','ينشئ Array جديدة بالعناصر التي تحقق شرطًا.'],['reduce','يحوّل عناصر المصفوفة إلى نتيجة تراكمية.']],syntax:'const numbers = [1, 2, 3, 4];\nconst doubled = numbers.map(n => n * 2);',lines:['numbers ← أربع قيم مرتبة.','map يمر على كل عنصر.','n يمثل العنصر الحالي.','n*2 يصبح عنصرًا في المصفوفة الجديدة.'],real:'لعرض المنتجات: products.map(...). ولإظهار المتاح: products.filter(product => product.inStock).',internals:'Array كائن له length وخصائص رقمية. map وfilter يعيدان مصفوفات جديدة في الاستخدام المعتاد.',pitfalls:['استخدام map دون استخدام النتيجة.','نسيان أن index يبدأ من 0.','تعديل المصفوفة الأصلية داخل عمليات يفترض أنها نقية.'],exercise:'لديك [5,10,15,20]. أنشئ مصفوفة للقيم الأكبر من 10 مضروبة في 2.'},
+objects:{why:'Object يمثل كيانًا بخصائص ذات أسماء، وهو الشكل الشائع لبيانات JSON والإعدادات والrecords.',terms:[['property','مفتاح وقيمة داخل object.'],['method','دالة مخزنة كخاصية.'],['dot notation','الوصول مثل user.name.'],['destructuring','استخراج خصائص إلى متغيرات بصياغة مختصرة.']],syntax:'const user = { name: "Sara", age: 24 };\nconst { name, age } = user;',lines:['user = {...} ← إنشاء object.','name وage ← properties.','user.name ← قراءة خاصية.','destructuring ← استخراج القيم.'],real:'استجابة API مثل {id,name,email} هي object، وقائمة المستخدمين غالبًا Array من objects.',internals:'مفاتيح object العادية strings أو Symbols، ويمكن للمحرك تحسين الوصول للخصائص داخليًا.',pitfalls:['الوصول إلى property غير موجودة دون تحقق.','الخلط بين object وMap.','اعتقاد أن const object يمنع تعديل خصائصه.'],exercise:'أنشئ order يحتوي id وcustomer وtotal، ثم استخدم destructuring لطباعة customer وtotal.'},
+callbacks:{why:'Callback أساس مهم لفهم async: تمرر دالة كقيمة وتدع البيئة تستدعيها عندما يحين الوقت.',terms:[['callback','دالة تمرر كوسيط.'],['higher-order function','دالة تستقبل أو تعيد دوال.'],['event handler','callback تستجيب لحدث.'],['callback hell','تداخل callbacks بشكل يصعب إدارته.']],syntax:'setTimeout(() => {\n  console.log("Done");\n}, 500);',lines:['setTimeout يستقبل callback.','الـarrow هي callback.','500 تأخير أدنى قبل الجدولة.','بعد الدور المناسب تنفذ callback.'],real:'قراءة ملف واستقبال request والأحداث كلها أمثلة على نمط callback.',internals:'الـcallback لا يجعل العملية متزامنة؛ البيئة تنفذ العمل ثم تضع callback في مسار التنفيذ المناسب.',pitfalls:['اعتبار setTimeout دقيقًا بالمللي ثانية.','تداخل callbacks بلا تنظيم.','نسيان معالجة الأخطاء.'],exercise:'اكتب runLater(callback) تستخدم setTimeout لاستدعاء callback بعد ثانية.'},
+promises:{why:'Promise تمثل نتيجة مستقبلية لعملية async: نجاح أو فشل، وتسمح بتركيب العمليات دون callback nesting.',terms:[['pending','النتيجة لم تكتمل.'],['fulfilled','اكتملت بنجاح ومعها value.'],['rejected','فشلت ومعها reason/error.'],['then/catch/finally','للتعامل مع النجاح والفشل والتنظيف.']],syntax:'fetch("/api/users")\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.error(err));',lines:['fetch يعيد Promise.','then الأول يحول response إلى JSON.','then الثاني يستقبل البيانات.','catch يعالج rejection.'],real:'طلبات HTTP وقواعد البيانات وقراءة الملفات في Node APIs الحديثة تعتمد Promises كثيرًا.',internals:'Promise لا تجعل العملية أسرع؛ هي تمثل حالة ونتيجة مستقبلية وتسمح بتركيب async operations.',pitfalls:['نسيان return داخل then في chain.','ترك rejection دون catch.','الخلط بين Promise والنتيجة النهائية.'],exercise:'أنشئ Promise تنجح بعد 500ms بقيمة Done ثم تعامل معها بـthen وcatch.'},
+'async-await':{why:'async/await تجعل التعامل مع Promises أكثر وضوحًا، مع بقاء التنفيذ غير متزامنًا.',terms:[['async','تجعل الدالة تعيد Promise.'],['await','ينتظر Promise داخل async function.'],['try/catch','معالجة أخطاء await.'],['sequential','انتظار عمليات واحدة بعد الأخرى.']],syntax:'async function getData() {\n  try {\n    const result = await Promise.resolve("Data");\n    return result;\n  } catch (error) {\n    console.error(error);\n  }\n}',lines:['async تجعل getData تعيد Promise.','await يوقف استمرار هذه الدالة مؤقتًا ولا يجمد event loop.','try/catch يلتقط rejection.','return يتحول إلى fulfilled Promise.'],real:'مناسب جدًا لخدمات Node التي تستدعي database ثم API ثم تعيد response.',internals:'عند await تستعيد البيئة التحكم حتى تسوية Promise، ثم تستأنف الدالة عبر microtask.',pitfalls:['كتابة await لعمليات مستقلة واحدة تلو الأخرى.','نسيان معالجة rejection.','الاعتقاد أن await يجمد كل Node.js.'],exercise:'نفّذ Promise.resolve(10) وPromise.resolve(20) بالتوازي باستخدام Promise.all داخل async function.'},
+closures:{why:'Closure يفسر كيف تستخدم دالة داخلية متغيرات من دالة خارجية حتى بعد انتهاء استدعائها.',terms:[['lexical environment','بيئة تربط الأسماء بالقيم.'],['closure','دالة مع البيئة المعجمية التي تحتاجها.'],['private state','حالة لا تصل إليها إلا دوال محددة.'],['factory function','دالة تنشئ state ودوال مرتبطة بها.']],syntax:'function counter() {\n  let count = 0;\n  return () => ++count;\n}',lines:['counter ينشئ count.','الدالة الداخلية تشير إلى count.','counter ترجع الدالة.','next() يرى count بسبب closure.'],real:'Closures تظهر في event handlers وcallbacks وfactories وإدارة state.',internals:'البيئة التي تحتاجها closure لا تختفي طالما توجد مراجع إليها.',pitfalls:['Closures تحتفظ ببيانات كبيرة بلا حاجة.','عدم فهم أن كل factory يملك state مستقلًا.'],exercise:'أنشئ createMultiplier(x) تعيد دالة تضرب أي رقم في x، ثم أنشئ multiplier للرقم 3.'},
+'event-loop':{why:'Event Loop مفتاح فهم قدرة Node.js على التعامل مع I/O دون حبس JavaScript أثناء انتظار الشبكة أو الملفات.',terms:[['Call Stack','المكان الذي تنفذ فيه JavaScript frames.'],['Task','عمل مجدول مثل timer وفق البيئة.'],['Microtask','مهام مثل Promise reactions.'],['I/O','عمليات إدخال وإخراج كالشبكة والملفات.']],syntax:'console.log("A");\nsetTimeout(() => console.log("B"), 0);\nPromise.resolve().then(() => console.log("P"));\nconsole.log("C");',lines:['A تنفذ مباشرة.','timer لا يقفز وسط الكود الحالي.','Promise reaction تدخل microtask queue.','C تسبق الأعمال المؤجلة ثم تستأنف المهام وفق قواعد البيئة.'],real:'عند وصول HTTP request يبدأ Node عمليات I/O ويستطيع متابعة أعمال أخرى بدل انتظار الشبكة.',internals:'Event loop ينسق call stack والqueues وI/O phases، وتستخدم Node طبقة libuv لهذا النظام.',pitfalls:['قول إن JavaScript تنفذ كل شيء بالتوازي.','اعتبار setTimeout(0) فوريًا.','نسيان أن CPU-heavy synchronous code يحجب event loop.'],exercise:'توقع ترتيب A وB وP وC قبل التشغيل، ثم فسّر سبب كل انتقال.'},
+'what-is-nodejs':{why:'Node.js Runtime يشغل JavaScript خارج المتصفح ويضيف APIs ونظام event-driven مناسبًا للخوادم وأدوات CLI.',terms:[['Runtime','بيئة توفر ما يحتاجه المحرك لتشغيل البرنامج.'],['V8','محرك JavaScript.'],['libuv','مكوّن مهم في event loop وI/O.'],['API','واجهة جاهزة مثل fs وhttp وprocess.']],syntax:'import { createServer } from "node:http";\nconst server = createServer((req, res) => res.end("Hello"));\nserver.listen(3000);',lines:['import يستورد API من Node.','createServer ينشئ HTTP server.','callback يعالج request.','listen يبدأ الاستماع على port.'],real:'يمكن بناء APIs وworkers وCLI tools مباشرة بـNode، كما تستخدمه أطر مثل Next.js في جانب الخادم.',internals:'V8 ينفذ JavaScript، وNode يضيف APIs وevent loop وخدمات runtime حوله.',pitfalls:['قول إن Node لغة جديدة.','اعتقاد أن Node يستبدل JavaScript.','الخلط بين Node runtime وExpress framework.'],exercise:'اشرح الفرق بين JavaScript وV8 وNode.js في ثلاث جمل ثم شغّل ملف hello.js بـnode.'},
+v8:{why:'V8 محرك ينفذ JavaScript وWebAssembly. Node.js يستخدمه ثم يضيف بيئة تشغيل وAPIs.',terms:[['ECMAScript','المعيار الذي يحدد لغة JavaScript.'],['JIT','تقنيات تحسين وترجمة أثناء التشغيل.'],['WebAssembly','صيغة تنفيذ منخفضة المستوى بجانب JavaScript.'],['C++ embedding','إمكانية تضمين V8 في برامج C++.']],syntax:'const total = 20 + 22;\nconsole.log(total);',lines:['V8 يحلل JavaScript.','يبني تمثيلًا داخليًا ويُحسن التنفيذ.','العمليات الساخنة يمكن تحسينها أثناء التشغيل.','Node يوفر APIs خارج المحرك.'],real:'Chrome وNode.js يستخدمان V8، لكن كل بيئة تضيف APIs مختلفة.',internals:'V8 يضم parser/compiler/runtime وgarbage collector. الأداء نتيجة مراحل وتحسينات ديناميكية، وليس مجرد تحويل سطر واحد مباشرة إلى machine code.',pitfalls:['القول إن V8 هو Node.js.','الاعتقاد أن كل JavaScript تتحول بالطريقة نفسها وفي لحظة واحدة.'],exercise:'ارسم الطبقات JavaScript → V8 → Node.js APIs واكتب وظيفة كل طبقة.'},
+'browser-vs-node':{why:'نفس JavaScript يمكن أن تعمل في بيئات مختلفة، لكن الـglobal APIs تختلف؛ لذلك window وdocument ليستا جزءًا من JavaScript نفسها.',terms:[['DOM','تمثيل HTML الذي توفره المتصفحات.'],['window','كائن عالمي شائع في المتصفح.'],['document','واجهة الوصول إلى DOM.'],['process','كائن Node لمعلومات عملية التشغيل.']],syntax:'// Browser\nconsole.log(window.location.href);\n\n// Node.js\nconsole.log(process.platform);',lines:['window من Web Platform.','document مرتبط بالـDOM.','process توفره Node.','اللغة واحدة لكن البيئة والAPIs مختلفة.'],real:'Next.js يمكن أن يشغل كودًا على الخادم أو العميل؛ لذلك معرفة البيئة مهمة قبل استخدام API.',internals:'ECMAScript يحدد اللغة، أما Web APIs وNode APIs فتأتي من host environment.',pitfalls:['استخدام document في server code.','اعتقاد أن كل browser API موجود في Node.','نسيان أن Node يملك filesystem APIs بينما المتصفح مقيد لأسباب أمنية.'],exercise:'اكتب جدولًا يقارن document وwindow مع process وfs.'},
+modules:{why:'Modules تقسم المشروع إلى ملفات صغيرة وتحدد ما يخرج من الملف وما يدخل إليه.',terms:[['ES Module','نظام import/export القياسي.'],['CommonJS','نظام أقدم يعتمد require/module.exports.'],['named export','تصدير باسم محدد.'],['default export','تصدير افتراضي يمكن استيراده باسم يختاره المستورد.']],syntax:'// math.ts\nexport const add = (a,b) => a+b;\n\n// app.ts\nimport { add } from "./math";',lines:['export يجعل add متاحة.','import يربط الاسم.','الوحدة تملك scope خاصًا.','التقسيم يقلل globals.'],real:'في Next.js كل component أو utility أو service يمكن أن يكون module مستقلًا.',internals:'نظام modules يبني dependency graph ويحدد تحميل الوحدات وفق النظام المستخدم.',pitfalls:['مسارات import خاطئة.','خلط CommonJS وESM دون فهم إعداد المشروع.','ملف واحد ضخم لكل المشروع.'],exercise:'أنشئ math.ts يصدر add وmultiply ثم استوردهما في index.ts.'},
+npm:{why:'npm يدير الحزم والscripts وmetadata. package.json هو تعريف المشروع واعتمادياته وأوامره.',terms:[['dependency','حزمة يحتاجها التطبيق.'],['devDependency','حزمة للتطوير أو build غالبًا.'],['lockfile','يثبت نسخًا دقيقة للاعتماديات.'],['script','اسم مختصر لأمر متكرر.']],syntax:'npm init -y\nnpm install express\nnpm install -D typescript\nnpm run build',lines:['npm init ينشئ package.json.','npm install يضيف dependency.','-D يضيف devDependency.','npm run build يشغل script.'],real:'مشاريع Next.js تعتمد package.json لتحديد next وreact وأوامر dev/build.',internals:'npm يحل dependency tree ويستخدم lockfile عند توفره لتثبيت نسخ محددة.',pitfalls:['رفع node_modules إلى Git.','حذف lockfile بلا سبب.','وضع أدوات build كdependencies runtime بلا حاجة.'],exercise:'أنشئ مشروعًا صغيرًا، أضف lodash ثم راقب package.json وlockfile.'},
+'http-server':{why:'HTTP أساس تواصل المتصفح والAPI. فهم request/response قبل frameworks يوضح ما يحدث تحت abstraction.',terms:[['request','رسالة من العميل للخادم.'],['response','رسالة الخادم للعميل.'],['status code','رقم يصف النتيجة مثل 200 و404 و500.'],['header','metadata مثل Content-Type.']],syntax:'import { createServer } from "node:http";\nconst server = createServer((req,res) => {\n  res.statusCode = 200;\n  res.setHeader("Content-Type","text/plain");\n  res.end("Hello Node.js");\n});\nserver.listen(3000);',lines:['createServer يسجل handler.','req يمثل الطلب.','res يمثل الاستجابة.','statusCode يحدد الحالة.','end ينهي response.'],real:'Express وFastify وNext.js APIs تضيف abstractions أعلى من هذه المفاهيم لكنها في النهاية تتعامل مع HTTP.',internals:'الخادم يستمع على TCP port، ثم تقرأ طبقات الشبكة HTTP وتحوله إلى request/response objects.',pitfalls:['نسيان res.end.','إرسال JSON دون Content-Type مناسب.','الخلط بين 404 و500.'],exercise:'أنشئ server يعيد JSON عند /api/hello و404 لأي path آخر.'},
+'environment-variables':{why:'Environment variables تفصل إعدادات البيئة والأسرار عن source code، وهذا مهم عند الانتقال من local إلى production.',terms:[['process.env','واجهة Node لقراءة متغيرات البيئة.'],['secret','قيمة حساسة مثل API key.'],['.env','ملف شائع للتطوير المحلي.'],['public variable','متغير قد يصبح متاحًا للعميل في بعض frameworks.']],syntax:'const port = process.env.PORT ?? "3000";\nconst databaseUrl = process.env.DATABASE_URL;',lines:['process.env.PORT يقرأ PORT.','?? يستخدم البديل عند null/undefined.','DATABASE_URL يجب ألا تكشف credentials للعميل.'],real:'Vercel وSupabase وغيرها توفر حقولًا للـEnvironment Variables بدل وضع الأسرار في repository.',internals:'متغيرات البيئة تُحقن قبل تشغيل process. لا يوجد سحر يحمي secret إذا أرسلته إلى client bundle.',pitfalls:['رفع .env إلى Git.','وضع secret في متغير client-exposed.','نسيان تعريف المتغير في production.'],exercise:'أنشئ PORT وAPP_NAME محليًا، اقرأهما من process.env، وأضف .env إلى .gitignore.'}
+};
+
+export function generateStaticParams(){return lessons.map(x=>({slug:x.slug}));}
+export default async function Page({params}:{params:Promise<{slug:string}>}){
+ const {slug}=await params; const i=lessons.findIndex(x=>x.slug===slug); if(i<0)return notFound();
+ const l=lessons[i],prev=lessons[i-1],next=lessons[i+1],d=details[slug];
+ return <main className="lesson-shell"><header className="top lesson-top"><Link href="/" className="brand"><b>JS</b> Academy</Link><Link href="/" className="back"><ArrowRight size={16}/> المنهج</Link></header>
+ <div className="lesson-layout"><aside className="sidebar"><div className="side-title"><BookOpen size={18}/> المنهج</div>{['JavaScript','Async JavaScript','Node.js'].map(c=><div className="side-group" key={c}><b>{c}</b>{lessons.filter(x=>x.category===c).map(x=><Link className={x.slug===slug?'active':''} href={`/learn/${x.slug}`} key={x.slug}>{x.title}</Link>)}</div>)}</aside>
+ <article className="content"><div className="crumb">{l.category} · درس {i+1} من {lessons.length}</div><h1>{l.title}</h1><p className="lead">{l.summary}</p><Actions slug={slug}/>
+ <section><h2>🎯 الفكرة ببساطة</h2><div className="definition"><p>{l.explanation}</p></div></section>
+ {d&&<><section><h2>🤔 لماذا نحتاج هذا المفهوم؟</h2><p>{d.why}</p></section><section><h2>🔤 المصطلحات التي يجب أن تعرفها</h2><div className="terms">{d.terms.map(([term,text])=><div className="term" key={term}><b>{term}</b><p>{text}</p></div>)}</div></section><section><h2>💻 Syntax</h2><pre className="syntax">{d.syntax}</pre></section><section><h2>🔍 شرح المثال سطرًا سطرًا</h2><div className="line-list">{d.lines.map((x,n)=><div className="line-item" key={n}><span className="line-no">{n+1}</span><p>{x}</p></div>)}</div></section></>}
+ <section><h2>🧪 مثال عملي</h2><div className="code"><div className="code-head"><span>JavaScript</span><span>{l.title}</span></div><pre>{l.code}</pre></div><div className="output"><b>Output</b><code>{l.output}</code></div></section>
+ {d&&<><section><h2>🌍 مثال من مشروع حقيقي</h2><p>{d.real}</p></section><section><h2>⚙️ ماذا يحدث خلف الكواليس؟</h2><p>{d.internals}</p></section><section><h2>⚠️ أخطاء شائعة</h2>{d.pitfalls.map(x=><div className="take" key={x}><Check size={16}/>{x}</div>)}</section></>}
+ <section className="note"><h2>💡 نقطة مهمة</h2><p>{l.tip}</p></section>{d&&<section className="exercise"><h2>📝 تمرين عليك</h2><p>{d.exercise}</p><p><b>نصيحة:</b> حاول الحل بنفسك أولًا، ثم راجع المثال.</p></section>}
+ <section><h2>✅ ماذا يجب أن تتذكر؟</h2>{l.takeaways.map(x=><div className="take" key={x}><Check size={16}/>{x}</div>)}</section>
+ <div className="lesson-nav">{prev?<Link href={`/learn/${prev.slug}`}><ArrowRight/><span>السابق<small>{prev.title}</small></span></Link>:<span/>}{next?<Link href={`/learn/${next.slug}`}><span>التالي<small>{next.title}</small></span><ArrowLeft/></Link>:<span/>}</div></article></div></main>;
 }
