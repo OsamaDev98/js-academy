@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Cairo } from 'next/font/google';
 import './globals.css';
 
-const cairo = Cairo({ subsets: ['arabic'], display: 'swap', variable: '--font-cairo' });
+const cairo = Cairo({ subsets: ['arabic', 'latin'], display: 'swap', variable: '--font-cairo' });
 
 export const metadata: Metadata = {
   title: 'JS Academy — JavaScript & Node.js',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={cairo.variable}>{children}</body>
+      <body className={cairo.className}>{children}</body>
     </html>
   );
 }
