@@ -26,13 +26,13 @@ export default function Actions({ slug }: { slug: string }) {
     setDark(document.documentElement.dataset.theme === "dark");
     setCode(localStorage.getItem("code:" + slug) ?? defaultCode);
     setOutput(localStorage.getItem("output:" + slug) ?? "");
-  }, [slug]);
+  }, [slug, defaultCode]);
 
   useEffect(() => { if (code) localStorage.setItem("code:" + slug, code); }, [code, slug]);
   useEffect(() => { localStorage.setItem("output:" + slug, output); }, [output, slug]);
 
   function finish() { const v=!done; setDone(v); localStorage.setItem("done:"+slug,v?"1":"0"); }
-  function theme() { const v=!dark; setDark(v); document.documentElement.dataset.theme=v?"dark":"light"; localStorage.setItem("theme",v?"dark":"light"); }
+  function theme() { const v=!dark; setDark(v); document.documentElement.dataset.theme=v?"dark":"light"; localStorage.setItem("js-academy-theme",v?"dark":"light"); }
   function runCode() {
     setRunning(true); setOutput(""); const logs:string[]=[];
     const format=(v:unknown)=>typeof v==='string'?v:JSON.stringify(v,null,2);
