@@ -1,7 +1,8 @@
 import { curriculumNext } from './curriculum-next';
+import { nodeArchitectureLesson } from './node-architecture';
 
 /** Single source of truth for deep lessons used by the learning routes. */
-export const allDeepLessons = curriculumNext;
+export const allDeepLessons = [nodeArchitectureLesson, ...curriculumNext];
 
 export function getDeepLesson(slug: string) {
   return allDeepLessons.find((lesson) => lesson.slug === slug);
